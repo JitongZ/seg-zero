@@ -23,6 +23,7 @@ if __name__=="__main__":
     parser.add_argument('--num_ddim_steps', type=int, default=50)
     parser.add_argument('--model_path', type=str, default='CompVis/stable-diffusion-v1-4')
     parser.add_argument('--use_float_16', action='store_true')
+    parser.add_argument('--hard_code_prompt', type=str, default=None)
     args = parser.parse_args()
 
     # make the output folders
@@ -52,9 +53,14 @@ if __name__=="__main__":
     for img_path in l_img_paths:
         bname = os.path.basename(img_path).split(".")[0]
         img = Image.open(img_path).resize((512,512), Image.Resampling.LANCZOS)
-        # generate the caption
-        _image = vis_processors["eval"](img).unsqueeze(0).to(device)
-        prompt_str = model_blip.generate({"image": _image})[0]
+        if args.hard_code_prompt is None:
+            # generate the caption
+            _image = vis_processors["eval"](img).unsqueeze(0).to(device)
+            prompt_str = model_blip.generate({"image": _image})[0]
+        else:
+            prompt_str = args.hard_code_prompt
+        # import ipdb
+        # ipdb.set_trace()
         x_inv, x_inv_image, x_dec_img = pipe(
             prompt_str, 
             guidance_scale=1,
