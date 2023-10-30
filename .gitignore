@@ -6,3 +6,4 @@ assets/edit_sentences
 src/utils/edit_pipeline_spatial.py
 assets/sentences
 *__pycache__*
+venv
