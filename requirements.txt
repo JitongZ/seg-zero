@@ -8,5 +8,5 @@ opencv-python-headless
 pillow
 psutil
 tqdm
-transformers
+transformers==4.26.0
 salesforce-lavis
