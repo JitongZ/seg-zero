@@ -160,6 +160,7 @@ class BasePipeline(DiffusionPipeline):
                 weighting. If not provided, negative_prompt_embeds will be generated from `negative_prompt` input
                 argument.
         """
+        # fanpu: for some reason the negative_prompt is the same as the prompt?? seems like a bug?
         if prompt is not None and isinstance(prompt, str):
             batch_size = 1
         elif prompt is not None and isinstance(prompt, list):
@@ -189,6 +190,9 @@ class BasePipeline(DiffusionPipeline):
                     f" {self.tokenizer.model_max_length} tokens: {removed_text}"
                 )
 
+            # fanpu: the attention masks here are not really relevant, it's
+            # for masking out the tokens in CLIP and not related to our image masking.
+            # I don't know why we'd want to mask CLIP tokens here tbh
             if hasattr(self.text_encoder.config, "use_attention_mask") and self.text_encoder.config.use_attention_mask:
                 attention_mask = text_inputs.attention_mask.to(device)
             else:
@@ -198,7 +202,9 @@ class BasePipeline(DiffusionPipeline):
                 text_input_ids.to(device),
                 attention_mask=attention_mask,
             )
-            prompt_embeds = prompt_embeds[0]
+            # fanpu: has shape (1, 77, 768)
+            # 768 because BERT uses 768 dim embedding space
+            prompt_embeds = prompt_embeds[0] 
 
         prompt_embeds = prompt_embeds.to(dtype=self.text_encoder.dtype, device=device)
 
@@ -282,6 +288,7 @@ class BasePipeline(DiffusionPipeline):
                 f" size of {batch_size}. Make sure the batch size matches the length of the generators."
             )
 
+        # fanpu: shape is (1, 4, 64, 64)
         if latents is None:
             latents = randn_tensor(shape, generator=generator, device=device, dtype=dtype)
         else:
