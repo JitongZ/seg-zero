@@ -8,3 +8,5 @@ src/utils/edit_pipeline_spatial.py
 *__pycache__*
 venv
 attention.pkl
+CelebAMask-HQ.zip
+CelebAMask-HQ
