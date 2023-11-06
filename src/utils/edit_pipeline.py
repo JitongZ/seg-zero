@@ -7,6 +7,7 @@ from diffusers.pipelines.stable_diffusion import StableDiffusionPipelineOutput
 sys.path.insert(0, "src/utils")
 from base_pipeline import BasePipeline
 from cross_attention import prep_unet
+import pickle
 
 
 if torch.cuda.is_available():
@@ -37,8 +38,9 @@ class EditingPipeline(BasePipeline):
         x_in=None,
         only_sample=False, # only perform sampling, and no editing
 
+        # our group project parameters
+        dump_attention=False
     ):
-
         x_in.to(dtype=self.unet.dtype, device=self._execution_device)
 
         # 0. modify the unet to be useful :D
@@ -96,6 +98,7 @@ class EditingPipeline(BasePipeline):
                     d_ref_t2attn[t.item()] = {}
                     for name, module in self.unet.named_modules():
                         module_name = type(module).__name__
+                        print(module_name)
                         if module_name == "CrossAttention" and 'attn2' in name:
                             attn_mask = module.attn_probs # size is num_channel,s*s,77
                             d_ref_t2attn[t.item()][name] = attn_mask.detach().cpu()
@@ -112,12 +115,16 @@ class EditingPipeline(BasePipeline):
                     if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
                         progress_bar.update()
 
+        # fanpu: to dump the attention maps
+        if dump_attention:
+            with open('attention.pkl', 'wb') as f:
+                pickle.dump(d_ref_t2attn, f)
+
         # make the reference image (reconstruction)
         image_rec = self.numpy_to_pil(self.decode_latents(latents.detach()))
 
         if only_sample:
             return image_rec
-
 
         prompt_embeds_edit = prompt_embeds.clone()
         #add the edit only to the second prompt, idx 0 is the negative prompt

@@ -30,6 +30,10 @@ if __name__=="__main__":
     parser.add_argument('--negative_guidance_scale', default=5.0, type=float) # classifier-free guidance
     parser.add_argument('--use_float_16', action='store_true')
 
+    # fanpu: set true to create a "attention.pkl" file that can
+    # be visualized using visualize_attn.py
+    parser.add_argument('--dump_attention', action='store_true')
+
     args = parser.parse_args()
 
     os.makedirs(os.path.join(args.results_folder, "edit"), exist_ok=True)
@@ -65,7 +69,8 @@ if __name__=="__main__":
                 edit_dir=construct_direction(args.task_name),
                 guidance_amount=args.xa_guidance,
                 guidance_scale=args.negative_guidance_scale,
-                negative_prompt=prompt_str # use the unedited prompt for the negative prompt
+                negative_prompt=prompt_str, # use the unedited prompt for the negative prompt
+                dump_attention=args.dump_attention
         )
         
         bname = os.path.basename(args.inversion).split(".")[0]
