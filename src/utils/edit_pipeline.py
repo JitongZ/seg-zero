@@ -73,6 +73,7 @@ class EditingPipeline(BasePipeline):
         num_channels_latents = self.unet.in_channels
         
         # randomly sample a latent code if not provided
+        # fanpu: latent dimensions (1, 4, 64, 64)
         latents = self.prepare_latents(batch_size * num_images_per_prompt, num_channels_latents, height, width, prompt_embeds.dtype, device, generator, x_in,)
         
         latents_init = latents.clone()

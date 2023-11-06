@@ -24,10 +24,10 @@ if __name__=="__main__":
     parser.add_argument('--prompt', type=str, required=True)
     parser.add_argument('--task_name', type=str, default='cat2dog')
     parser.add_argument('--results_folder', type=str, default='output/test_cat')
-    parser.add_argument('--num_ddim_steps', type=int, default=50)
+    parser.add_argument('--num_ddim_steps', type=int, default=50) # fanpu: could reduce this to make it faster
     parser.add_argument('--model_path', type=str, default='CompVis/stable-diffusion-v1-4')
     parser.add_argument('--xa_guidance', default=0.1, type=float)
-    parser.add_argument('--negative_guidance_scale', default=5.0, type=float)
+    parser.add_argument('--negative_guidance_scale', default=5.0, type=float) # classifier-free guidance
     parser.add_argument('--use_float_16', action='store_true')
 
     args = parser.parse_args()
@@ -57,6 +57,8 @@ if __name__=="__main__":
 
     for inv_path, prompt_path in zip(l_inv_paths, l_prompt_paths):
         prompt_str = open(prompt_path).read().strip()
+        # CR fanpu: don't really get why they think using the unedited prompt
+        # for the negative prompt is the right thing to do here
         rec_pil, edit_pil = pipe(prompt_str,
                 num_inference_steps=args.num_ddim_steps,
                 x_in=torch.load(inv_path).unsqueeze(0),
