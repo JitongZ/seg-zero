@@ -98,7 +98,6 @@ class EditingPipeline(BasePipeline):
                     d_ref_t2attn[t.item()] = {}
                     for name, module in self.unet.named_modules():
                         module_name = type(module).__name__
-                        print(module_name)
                         if module_name == "CrossAttention" and 'attn2' in name:
                             attn_mask = module.attn_probs # size is num_channel,s*s,77
                             d_ref_t2attn[t.item()][name] = attn_mask.detach().cpu()
