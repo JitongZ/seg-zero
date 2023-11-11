@@ -8,6 +8,7 @@ sys.path.insert(0, "src/utils")
 from base_pipeline import BasePipeline
 from cross_attention import prep_unet
 import pickle
+import math
 
 
 if torch.cuda.is_available():
@@ -39,7 +40,10 @@ class EditingPipeline(BasePipeline):
         only_sample=False, # only perform sampling, and no editing
 
         # our group project parameters
-        dump_attention=False
+        dump_attention=False,
+        masks=None,
+        mask_outside_scaling_factor=1.5,
+        mask_inside_scaling_factor=0.7,
     ):
         x_in.to(dtype=self.unet.dtype, device=self._execution_device)
 
@@ -152,7 +156,27 @@ class EditingPipeline(BasePipeline):
                     if module_name == "CrossAttention" and 'attn2' in name:
                         curr = module.attn_probs # size is num_channel,s*s,77
                         ref = d_ref_t2attn[t.item()][name].detach().to(device)
-                        loss += ((curr-ref)**2).sum((1,2)).mean(0)
+                        
+                        if masks:
+                            # Using our method
+                            _, dim_squared, _ = curr.shape
+                            dim = int(math.sqrt(dim_squared))
+                            mask = masks[dim].reshape((1,-1,1)).repeat(16,1,77)
+
+                            diff = curr - ref
+                            
+                            # Penalize areas outside mask more
+                            outside = (curr - ref) * (1 - mask) * mask_outside_scaling_factor
+
+                            # Penalize areas inside mask less
+                            inside = (curr - ref) * mask * mask_inside_scaling_factor
+
+                            reweighted_diff = outside + inside
+
+                            loss += (reweighted_diff**2).sum((1,2)).mean(0)
+                        else:
+                            # Use the original method
+                            loss += ((curr-ref)**2).sum((1,2)).mean(0)
                 loss.backward(retain_graph=False)
                 opt.step()
 
