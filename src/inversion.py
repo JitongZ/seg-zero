@@ -59,8 +59,6 @@ if __name__=="__main__":
             prompt_str = model_blip.generate({"image": _image})[0]
         else:
             prompt_str = args.hard_code_prompt
-        # import ipdb
-        # ipdb.set_trace()
         x_inv, x_inv_image, x_dec_img = pipe(
             prompt_str, 
             guidance_scale=1,

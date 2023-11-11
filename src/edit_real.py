@@ -12,6 +12,8 @@ from utils.ddim_inv import DDIMInversion
 from utils.edit_directions import construct_direction
 from utils.edit_pipeline import EditingPipeline
 
+import matplotlib.pyplot as plt
+
 if torch.cuda.is_available():
     device = "cuda"
 else:
@@ -20,26 +22,34 @@ else:
 mask_dimensions = [64, 32, 16, 8] # all the dimensions required in our unet
 
 # Returns binary mask where 0 is black, and 1 is white (the mask of interest)
-def image_to_binary_masks(image_path):
+def image_to_binary_masks(image_paths):
     # Load the image
-    with Image.open(image_path) as img:
-        # Convert image to grayscale
-        img = img.convert('L')
-        masks = {}
+    masks = {}
 
-        for dim in mask_dimensions:
-            resized_img = img.resize((dim, dim))
+    for image_path in image_paths:
+        with Image.open(image_path) as img:
+            # Convert image to grayscale
+            img = img.convert('L')
 
-            # Convert image to a NumPy array
-            img_array = np.array(resized_img)
+            for dim in mask_dimensions:
+                resized_img = img.resize((dim, dim), Image.BICUBIC)
 
-            # Apply a threshold to create a binary matrix (0 for black, 1 for white)
-            # Assuming the threshold for differentiating black and white is 128
-            binary_matrix = (img_array > 128).astype(int)
+                # Convert image to a NumPy array
+                img_array = np.array(resized_img)
 
-            masks[dim] = torch.tensor(binary_matrix).to(device).reshape(-1)
+                # Apply a threshold to create a binary matrix (0 for black, 1 for white)
+                # Assuming the threshold for differentiating black and white is 128
+                binary_matrix = (img_array > 128).astype(int)
 
-        return masks
+                if dim not in masks:
+                    masks[dim] = torch.tensor(binary_matrix).to(device)
+                else:
+                    masks[dim] = torch.maximum(masks[dim], torch.tensor(binary_matrix).to(device))
+
+    # for mask in masks.values():
+    #     plt.imshow(mask.cpu())
+    #     plt.show()
+    return masks
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
@@ -52,7 +62,7 @@ if __name__=="__main__":
     parser.add_argument('--xa_guidance', default=0.1, type=float)
     parser.add_argument('--negative_guidance_scale', default=5.0, type=float) # classifier-free guidance
     parser.add_argument('--use_float_16', action='store_true')
-    parser.add_argument('--mask', type=str)
+    parser.add_argument('--masks', type=str, nargs='+', help="List of mask images to be used, which will be unioned together")
     parser.add_argument('--mask_outside_scaling_factor', type=float, default=1.5)
     parser.add_argument('--mask_inside_scaling_factor', type=float, default=0.7)
 
@@ -81,8 +91,8 @@ if __name__=="__main__":
         l_prompt_paths = [args.prompt]
 
     # Load mask if it exists
-    if args.mask:
-        masks = image_to_binary_masks(args.mask)
+    if args.masks:
+        masks = image_to_binary_masks(args.masks)
     else:
         masks = None
 
@@ -109,7 +119,7 @@ if __name__=="__main__":
         )
         
         bname = os.path.basename(args.inversion).split(".")[0]
-        if args.mask is None:
+        if args.masks is None:
             edit_pil[0].save(os.path.join(args.results_folder, f"edit/{bname}_no_mask.png"))
         else:
             edit_pil[0].save(os.path.join(args.results_folder, f"edit/{bname}_outside_{args.mask_outside_scaling_factor}_inside_{args.mask_inside_scaling_factor}.png"))
