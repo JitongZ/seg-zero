@@ -1,16 +1,16 @@
 #!/bin/bash
 
-image_num=3026
-image_prefix=03026
-source="male"
-target="female"
-mask_outside_scaling_factor=1.2
-mask_inside_scaling_factor=0.4
-guidance_steps=5
+image_num=13114
+image_prefix=13114
+source="pale skin"
+target="tanned skin"
+mask_outside_scaling_factor=1
+mask_inside_scaling_factor=1
+guidance_steps=3
 # mask_type choices: 
 # cloth  l_brow  l_eye  mouth  nose    r_eye  u_lip 
 # hair   l_ear   l_lip  neck   r_brow  skin
-mask_types=("skin" "hair")
+mask_types=("skin")
 
 # When performing exploration for images in CelebAHQ-mask, these are the
 # attributes you can use:
@@ -38,10 +38,16 @@ echo "Image ${image_num} ${image_prefix}"
 
 echo "Generating sentences"
 
-touch "assets/sentences/${source}.txt"
-touch "assets/sentences/${target}.txt"
-echo ${source} > "assets/sentences/${source}.txt"
-echo ${target} > "assets/sentences/${target}.txt"
+
+if [ ! -f "assets/sentences/${source}.txt" ]; then
+    touch "assets/sentences/${source}.txt"
+    echo -n ${source} > "assets/sentences/${source}.txt"
+fi
+
+if [ ! -f "assets/sentences/${target}.txt" ]; then
+    touch "assets/sentences/${target}.txt"
+    echo -n ${target} > "assets/sentences/${target}.txt"
+fi
 
 # this will burn money
 # python src/generate_sentences.py \
@@ -72,11 +78,11 @@ python src/edit_real.py \
     --task_name "${task}" \
     --results_folder "output/test_custom/" \
     --num_ddim_steps 50 \
-    --use_float_16 \
     --masks ${masks} \
     --mask_outside_scaling_factor $mask_outside_scaling_factor \
     --mask_inside_scaling_factor $mask_inside_scaling_factor \
-    --guidance_steps=$guidance_steps
+    --guidance_steps=$guidance_steps \
+    --use_float_16
 
 echo "Running baseline"
 
