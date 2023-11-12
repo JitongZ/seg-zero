@@ -1,16 +1,16 @@
 #!/bin/bash
 
-image_num=13114
-image_prefix=13114
-source="pale skin"
-target="tanned skin"
-mask_outside_scaling_factor=1
-mask_inside_scaling_factor=1
-guidance_steps=3
+image_num=15410
+image_prefix=15410
+source="female"
+target="male"
+mask_outside_scaling_factor=1.2
+mask_inside_scaling_factor=0.6
+guidance_steps=20
 # mask_type choices: 
 # cloth  l_brow  l_eye  mouth  nose    r_eye  u_lip 
 # hair   l_ear   l_lip  neck   r_brow  skin
-mask_types=("skin")
+mask_types=("skin" "hair")
 
 # When performing exploration for images in CelebAHQ-mask, these are the
 # attributes you can use:
