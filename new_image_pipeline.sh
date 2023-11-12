@@ -1,11 +1,12 @@
 #!/bin/bash
 
-image_num=9
-image_prefix=00009
+image_num=3026
+image_prefix=03026
 source="male"
 target="female"
-mask_outside_scaling_factor=1.4
+mask_outside_scaling_factor=1.2
 mask_inside_scaling_factor=0.4
+guidance_steps=5
 # mask_type choices: 
 # cloth  l_brow  l_eye  mouth  nose    r_eye  u_lip 
 # hair   l_ear   l_lip  neck   r_brow  skin
@@ -39,8 +40,8 @@ echo "Generating sentences"
 
 touch "assets/sentences/${source}.txt"
 touch "assets/sentences/${target}.txt"
-echo ${source} >> "assets/sentences/${source}.txt"
-echo ${target} >> "assets/sentences/${target}.txt"
+echo ${source} > "assets/sentences/${source}.txt"
+echo ${target} > "assets/sentences/${target}.txt"
 
 # this will burn money
 # python src/generate_sentences.py \
@@ -74,7 +75,8 @@ python src/edit_real.py \
     --use_float_16 \
     --masks ${masks} \
     --mask_outside_scaling_factor $mask_outside_scaling_factor \
-    --mask_inside_scaling_factor $mask_inside_scaling_factor
+    --mask_inside_scaling_factor $mask_inside_scaling_factor \
+    --guidance_steps=$guidance_steps
 
 echo "Running baseline"
 

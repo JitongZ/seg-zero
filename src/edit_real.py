@@ -65,6 +65,7 @@ if __name__=="__main__":
     parser.add_argument('--masks', type=str, nargs='+', help="List of mask images to be used, which will be unioned together")
     parser.add_argument('--mask_outside_scaling_factor', type=float, default=1.5)
     parser.add_argument('--mask_inside_scaling_factor', type=float, default=0.7)
+    parser.add_argument('--guidance_steps', type=int, default=1)
 
     # fanpu: set true to create a "attention.pkl" file that can
     # be visualized using visualize_attn.py
@@ -104,7 +105,7 @@ if __name__=="__main__":
     if args.masks is None:
         dest_file = os.path.join(args.results_folder, f"edit/{bname}_{args.task_name}_no_mask.png")
     else:
-        dest_file = os.path.join(args.results_folder, f"edit/{bname}_outside_{args.mask_outside_scaling_factor}_inside_{args.mask_inside_scaling_factor}_{args.task_name}.png")
+        dest_file = os.path.join(args.results_folder, f"edit/{bname}_guidance_{args.guidance_steps}_outside_{args.mask_outside_scaling_factor}_inside_{args.mask_inside_scaling_factor}_{args.task_name}.png")
 
     if os.path.exists(dest_file):
         print("Skipping as edit file already exists (probably baseline)")
@@ -125,7 +126,8 @@ if __name__=="__main__":
                 dump_attention=args.dump_attention,
                 masks=masks,
                 mask_outside_scaling_factor=args.mask_outside_scaling_factor,
-                mask_inside_scaling_factor=args.mask_inside_scaling_factor
+                mask_inside_scaling_factor=args.mask_inside_scaling_factor,
+                guidance_steps=args.guidance_steps
         )
         
         edit_pil[0].save(dest_file)

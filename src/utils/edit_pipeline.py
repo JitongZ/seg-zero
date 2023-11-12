@@ -44,6 +44,7 @@ class EditingPipeline(BasePipeline):
         masks=None,
         mask_outside_scaling_factor=1.5,
         mask_inside_scaling_factor=0.7,
+        guidance_steps=1,
     ):
         x_in.to(dtype=self.unet.dtype, device=self._execution_device)
 
@@ -142,43 +143,44 @@ class EditingPipeline(BasePipeline):
                 latent_model_input = torch.cat([latents] * 2) if do_classifier_free_guidance else latents
                 latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
 
-                x_in = latent_model_input.detach().clone()
-                x_in.requires_grad = True
-                
-                opt = torch.optim.SGD([x_in], lr=guidance_amount)
+                for steps in range(guidance_steps):
+                    x_in = latent_model_input.detach().clone()
+                    x_in.requires_grad = True
+                    
+                    opt = torch.optim.SGD([x_in], lr=guidance_amount)
 
-                # predict the noise residual
-                noise_pred = self.unet(x_in,t,encoder_hidden_states=prompt_embeds_edit.detach(),cross_attention_kwargs=cross_attention_kwargs,).sample
+                    # predict the noise residual
+                    noise_pred = self.unet(x_in,t,encoder_hidden_states=prompt_embeds_edit.detach(),cross_attention_kwargs=cross_attention_kwargs,).sample
 
-                loss = 0.0
-                for name, module in self.unet.named_modules():
-                    module_name = type(module).__name__
-                    if module_name == "CrossAttention" and 'attn2' in name:
-                        curr = module.attn_probs # size is num_channel,s*s,77
-                        ref = d_ref_t2attn[t.item()][name].detach().to(device)
-                        
-                        if masks:
-                            # Using our method
-                            _, dim_squared, _ = curr.shape
-                            dim = int(math.sqrt(dim_squared))
-                            mask = masks[dim].reshape((1,-1,1)).repeat(16,1,77)
-
-                            diff = curr - ref
+                    loss = 0.0
+                    for name, module in self.unet.named_modules():
+                        module_name = type(module).__name__
+                        if module_name == "CrossAttention" and 'attn2' in name:
+                            curr = module.attn_probs # size is num_channel,s*s,77
+                            ref = d_ref_t2attn[t.item()][name].detach().to(device)
                             
-                            # Penalize areas outside mask more
-                            outside = (curr - ref) * (1 - mask) * mask_outside_scaling_factor
+                            if masks:
+                                # Using our method
+                                _, dim_squared, _ = curr.shape
+                                dim = int(math.sqrt(dim_squared))
+                                mask = masks[dim].reshape((1,-1,1)).repeat(16,1,77)
 
-                            # Penalize areas inside mask less
-                            inside = (curr - ref) * mask * mask_inside_scaling_factor
+                                diff = curr - ref
+                                
+                                # Penalize areas outside mask more
+                                outside = (curr - ref) * (1 - mask) * mask_outside_scaling_factor
 
-                            reweighted_diff = outside + inside
+                                # Penalize areas inside mask less
+                                inside = (curr - ref) * mask * mask_inside_scaling_factor
 
-                            loss += (reweighted_diff**2).sum((1,2)).mean(0)
-                        else:
-                            # Use the original method
-                            loss += ((curr-ref)**2).sum((1,2)).mean(0)
-                loss.backward(retain_graph=False)
-                opt.step()
+                                reweighted_diff = outside + inside
+
+                                loss += (reweighted_diff**2).sum((1,2)).mean(0)
+                            else:
+                                # Use the original method
+                                loss += ((curr-ref)**2).sum((1,2)).mean(0)
+                    loss.backward(retain_graph=False)
+                    opt.step()
 
                 # recompute the noise
                 with torch.no_grad():
