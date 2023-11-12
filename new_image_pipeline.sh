@@ -1,20 +1,33 @@
 #!/bin/bash
 
-image_num=29999
-image_prefix=29999
-source="brown hair"
-target="rainbow hair"
-mask_outside_scaling_factor=1.0
-mask_inside_scaling_factor=0.0
+image_num=9
+image_prefix=00009
+source="male"
+target="female"
+mask_outside_scaling_factor=1.4
+mask_inside_scaling_factor=0.4
 # mask_type choices: 
 # cloth  l_brow  l_eye  mouth  nose    r_eye  u_lip 
 # hair   l_ear   l_lip  neck   r_brow  skin
-mask_type="hair"
+mask_types=("skin" "hair")
 
+# When performing exploration for images in CelebAHQ-mask, these are the
+# attributes you can use:
+# ['5_o_Clock_Shadow', 'Arched_Eyebrows', 'Attractive', 'Bags_Under_Eyes',
+# 'Bald', 'Bangs', 'Big_Lips', 'Big_Nose', 'Black_Hair', 'Blond_Hair', 'Blurry',
+# 'Brown_Hair', 'Bushy_Eyebrows', 'Chubby', 'Double_Chin', 'Eyeglasses',
+# 'Goatee', 'Gray_Hair', 'Heavy_Makeup', 'High_Cheekbones', 'Male',
+# 'Mouth_Slightly_Open', 'Mustache', 'Narrow_Eyes', 'No_Beard', 'Oval_Face',
+# 'Pale_Skin', 'Pointy_Nose', 'Receding_Hairline', 'Rosy_Cheeks', 'Sideburns',
+# 'Smiling', 'Straight_Hair', 'Wavy_Hair', 'Wearing_Earrings', 'Wearing_Hat',
+# 'Wearing_Lipstick', 'Wearing_Necklace', 'Wearing_Necktie', 'Young']
 
 task="${source}2${target}"
 # masks="assets/masks/${image_prefix}_u_lip.png assets/masks/${image_prefix}_l_lip.png" 
-masks="assets/masks/${image_prefix}_${mask_type}.png" 
+masks=""
+for mask_type in "${mask_types[@]}"; do
+    masks+="assets/masks/${image_prefix}_${mask_type}.png " 
+done
 
 ./grab_data.sh "${image_num}.jpg" "${image_prefix}"
 
