@@ -30,6 +30,22 @@ if __name__=="__main__":
     os.makedirs(os.path.join(args.results_folder, "inversion"), exist_ok=True)
     os.makedirs(os.path.join(args.results_folder, "prompt"), exist_ok=True)
 
+    # if the input is a folder, collect all the images as a list
+    if os.path.isdir(args.input_image):
+        l_img_paths = sorted(glob(os.path.join(args.input_image, "*.png")))
+    else:
+        l_img_paths = [args.input_image]
+
+    if len(l_img_paths) == 1:
+        bname = os.path.basename(l_img_paths[0]).split(".")[0]
+
+        # Skip if inversion file already exists
+        dest_file = os.path.join(args.results_folder, f"inversion/{bname}.pt")
+        if os.path.exists(dest_file):
+            print("Skipping as inversion file already exists")
+            exit(0)
+
+
     if args.use_float_16:
         torch_dtype = torch.float16
     else:
@@ -43,15 +59,11 @@ if __name__=="__main__":
     pipe.scheduler = DDIMInverseScheduler.from_config(pipe.scheduler.config)
 
 
-    # if the input is a folder, collect all the images as a list
-    if os.path.isdir(args.input_image):
-        l_img_paths = sorted(glob(os.path.join(args.input_image, "*.png")))
-    else:
-        l_img_paths = [args.input_image]
-
-
     for img_path in l_img_paths:
         bname = os.path.basename(img_path).split(".")[0]
+
+        dest_file = os.path.join(args.results_folder, f"inversion/{bname}.pt")
+
         img = Image.open(img_path).resize((512,512), Image.Resampling.LANCZOS)
         if args.hard_code_prompt is None:
             # generate the caption
@@ -67,7 +79,7 @@ if __name__=="__main__":
             torch_dtype=torch_dtype
         )
         # save the inversion
-        torch.save(x_inv[0], os.path.join(args.results_folder, f"inversion/{bname}.pt"))
+        torch.save(x_inv[0], dest_file)
         # save the prompt string
         with open(os.path.join(args.results_folder, f"prompt/{bname}.txt"), "w") as f:
             f.write(prompt_str)

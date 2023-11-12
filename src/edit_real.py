@@ -100,6 +100,16 @@ if __name__=="__main__":
     pipe = EditingPipeline.from_pretrained(args.model_path, torch_dtype=torch_dtype).to(device)
     pipe.scheduler = DDIMScheduler.from_config(pipe.scheduler.config)
 
+    bname = os.path.basename(args.inversion).split(".")[0]
+    if args.masks is None:
+        dest_file = os.path.join(args.results_folder, f"edit/{bname}_{args.task_name}_no_mask.png")
+    else:
+        dest_file = os.path.join(args.results_folder, f"edit/{bname}_outside_{args.mask_outside_scaling_factor}_inside_{args.mask_inside_scaling_factor}_{args.task_name}.png")
+
+    if os.path.exists(dest_file):
+        print("Skipping as edit file already exists (probably baseline)")
+        exit(0)
+
 
     for inv_path, prompt_path in zip(l_inv_paths, l_prompt_paths):
         prompt_str = open(prompt_path).read().strip()
@@ -118,9 +128,5 @@ if __name__=="__main__":
                 mask_inside_scaling_factor=args.mask_inside_scaling_factor
         )
         
-        bname = os.path.basename(args.inversion).split(".")[0]
-        if args.masks is None:
-            edit_pil[0].save(os.path.join(args.results_folder, f"edit/{bname}_no_mask.png"))
-        else:
-            edit_pil[0].save(os.path.join(args.results_folder, f"edit/{bname}_outside_{args.mask_outside_scaling_factor}_inside_{args.mask_inside_scaling_factor}.png"))
+        edit_pil[0].save(dest_file)
         rec_pil[0].save(os.path.join(args.results_folder, f"reconstruction/{bname}.png"))

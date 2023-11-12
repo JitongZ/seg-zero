@@ -41,30 +41,29 @@ if __name__=="__main__":
     parser.add_argument('--model_path', type=str, default='CompVis/stable-diffusion-v1-4')
     args = parser.parse_args()
 
+    bname_src = os.path.basename(args.file_source_sentences).strip(".txt")
+    outf_src = os.path.join(args.output_folder, bname_src+".pt")
+    bname_tgt = os.path.basename(args.file_target_sentences).strip(".txt")
+    outf_tgt = os.path.join(args.output_folder, bname_tgt+".pt")
+
+    if os.path.exists(outf_src) and os.path.exists(outf_tgt):
+        print(f"Skipping as edit directions already exists")
+        exit(0)
+
     # load the model
     if torch.cuda.is_available():
         pipe = EditingPipeline.from_pretrained(args.model_path, torch_dtype=torch.float16).to(device)
     else:
         pipe = EditingPipeline.from_pretrained(args.model_path).to(device)
 
-    bname_src = os.path.basename(args.file_source_sentences).strip(".txt")
-    outf_src = os.path.join(args.output_folder, bname_src+".pt")
-    if os.path.exists(outf_src):
-        print(f"Skipping source file {outf_src} as it already exists")
-    else:
-        with open(args.file_source_sentences, "r") as f:
-            l_sents = [x.strip() for x in f.readlines()]
-        mean_emb = load_sentence_embeddings(l_sents, pipe.tokenizer, pipe.text_encoder, device=device)
-        print(mean_emb.shape)
-        torch.save(mean_emb, outf_src)
+    with open(args.file_source_sentences, "r") as f:
+        l_sents = [x.strip() for x in f.readlines()]
+    mean_emb = load_sentence_embeddings(l_sents, pipe.tokenizer, pipe.text_encoder, device=device)
+    print(mean_emb.shape)
+    torch.save(mean_emb, outf_src)
 
-    bname_tgt = os.path.basename(args.file_target_sentences).strip(".txt")
-    outf_tgt = os.path.join(args.output_folder, bname_tgt+".pt")
-    if os.path.exists(outf_tgt):
-        print(f"Skipping target file {outf_tgt} as it already exists")
-    else:
-        with open(args.file_target_sentences, "r") as f:
-            l_sents = [x.strip() for x in f.readlines()]
-        mean_emb = load_sentence_embeddings(l_sents, pipe.tokenizer, pipe.text_encoder, device=device)
-        print(mean_emb.shape)
-        torch.save(mean_emb, outf_tgt)
+    with open(args.file_target_sentences, "r") as f:
+        l_sents = [x.strip() for x in f.readlines()]
+    mean_emb = load_sentence_embeddings(l_sents, pipe.tokenizer, pipe.text_encoder, device=device)
+    print(mean_emb.shape)
+    torch.save(mean_emb, outf_tgt)
