@@ -1,20 +1,20 @@
 #!/bin/bash
 
-source="without glasses"
-target="wearing glasses"
-mask_outside_scaling_factor=1.0
-mask_inside_scaling_factor=1.0
-mask_explore_radius=0.8
-mask_explore_step=16
+source="middle aged white man"
+target="young adult white man"
+mask_outside_scaling_factor=0.5
+mask_inside_scaling_factor=0.3
+mask_explore_radius=0
+mask_explore_step=1
 xa_guidance=0.1
 xa_guidance_baseline=0.1 # default 0.1
-guidance_steps=1
+guidance_steps="1 2 3 5 7 10 20 30"
 # mask choices: 
 # stefano_age_mask.jpg  stefano_bangs_mask.jpg  stefano_beard_mask.jpg
 # stefano_face_mask.jpg  stefano_glasses_mask.jpg
 input_image="assets/custom/stefano.jpg"
 
-mask_types=("stefano_glasses_mask.jpg")
+mask_types=("stefano_age_mask.jpg")
 
 # When performing exploration for images in CelebAHQ-mask, these are the
 # attributes you can use:
@@ -85,7 +85,7 @@ python src/edit_real.py \
     --masks ${masks} \
     --mask_outside_scaling_factor $mask_outside_scaling_factor \
     --mask_inside_scaling_factor $mask_inside_scaling_factor \
-    --guidance_steps=$guidance_steps \
+    --guidance_steps $guidance_steps \
     --xa_guidance=$xa_guidance \
     --mask_explore_radius=$mask_explore_radius \
     --mask_explore_step=$mask_explore_step \
