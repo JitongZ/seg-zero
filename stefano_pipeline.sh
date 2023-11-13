@@ -1,16 +1,18 @@
 #!/bin/bash
 
-source="beard"
-target="clean shaven"
-mask_outside_scaling_factor=1.0
-mask_inside_scaling_factor=0.7
-guidance_steps=1
+source="middle aged man"
+target="young boy"
+mask_outside_scaling_factor=1.1
+mask_inside_scaling_factor=0.9
+xa_guidance=0.01
+xa_guidance_baseline=0.01 # default 0.1
+guidance_steps=3
 # mask choices: 
 # stefano_age_mask.jpg  stefano_bangs_mask.jpg  stefano_beard_mask.jpg
 # stefano_face_mask.jpg  stefano_glasses_mask.jpg
 input_image="assets/custom/stefano.jpg"
 
-mask_types=("stefano_beard_mask.jpg")
+mask_types=("stefano_age_mask.jpg")
 
 # When performing exploration for images in CelebAHQ-mask, these are the
 # attributes you can use:
@@ -38,11 +40,13 @@ echo "Generating sentences"
 
 
 if [ ! -f "assets/sentences/${source}.txt" ]; then
+    echo "Creating assets/sentences/${source}.txt"
     touch "assets/sentences/${source}.txt"
     echo -n ${source} > "assets/sentences/${source}.txt"
 fi
 
 if [ ! -f "assets/sentences/${target}.txt" ]; then
+    echo "Creating assets/sentences/${target}.txt"
     touch "assets/sentences/${target}.txt"
     echo -n ${target} > "assets/sentences/${target}.txt"
 fi
@@ -80,6 +84,7 @@ python src/edit_real.py \
     --mask_outside_scaling_factor $mask_outside_scaling_factor \
     --mask_inside_scaling_factor $mask_inside_scaling_factor \
     --guidance_steps=$guidance_steps \
+    --xa_guidance=$xa_guidance \
     --use_float_16
 
 echo "Running baseline"
@@ -90,4 +95,5 @@ python src/edit_real.py \
     --task_name "${task}" \
     --results_folder "output/test_custom/" \
     --num_ddim_steps 50 \
+    --xa_guidance=$xa_guidance_baseline \
     --use_float_16

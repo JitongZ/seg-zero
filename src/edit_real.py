@@ -131,7 +131,7 @@ if __name__=="__main__":
     if args.masks is None:
         dest_file = os.path.join(args.results_folder, f"edit/{bname}_{args.task_name}_no_mask.png")
     else:
-        dest_file = os.path.join(args.results_folder, f"edit/{bname}_guidance_{args.guidance_steps}_outside_{args.mask_outside_scaling_factor}_inside_{args.mask_inside_scaling_factor}_{args.task_name}.png")
+        dest_file = os.path.join(args.results_folder, f"edit/{bname}_guidance_{args.guidance_steps}_{args.xa_guidance}_outside_{args.mask_outside_scaling_factor}_inside_{args.mask_inside_scaling_factor}_{args.task_name}.png")
 
     if os.path.exists(dest_file):
         print("Skipping as edit file already exists (probably baseline)")
