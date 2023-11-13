@@ -92,6 +92,8 @@ if __name__=="__main__":
     parser.add_argument('--mask_outside_scaling_factor', type=float, default=1.5)
     parser.add_argument('--mask_inside_scaling_factor', type=float, default=0.7)
     parser.add_argument('--guidance_steps', type=int, default=1)
+    parser.add_argument('--mask_explore_radius', type=float)
+    parser.add_argument('--mask_explore_steps', type=int)
 
     # fanpu: set true to create a "attention.pkl" file that can
     # be visualized using visualize_attn.py
@@ -128,33 +130,49 @@ if __name__=="__main__":
     pipe.scheduler = DDIMScheduler.from_config(pipe.scheduler.config)
 
     bname = os.path.basename(args.inversion).split(".")[0]
-    if args.masks is None:
-        dest_file = os.path.join(args.results_folder, f"edit/{bname}_{args.xa_guidance}_{args.task_name}_no_mask.png")
+
+    if args.mask_explore_radius is None or args.mask_explore_steps is None:
+        print("No hyperparameter search, assuming this is baseline")
+        mask_outside_scaling_factors = [args.mask_outside_scaling_factor]
+        mask_inside_scaling_factors = [args.mask_inside_scaling_factor]
     else:
-        dest_file = os.path.join(args.results_folder, f"edit/{bname}_guidance_{args.guidance_steps}_{args.xa_guidance}_outside_{args.mask_outside_scaling_factor}_inside_{args.mask_inside_scaling_factor}_{args.task_name}.png")
+        r = args.mask_explore_radius
+        s = args.mask_explore_steps
+        mo = args.mask_outside_scaling_factor
+        mi = args.mask_inside_scaling_factor
+        mask_outside_scaling_factors = np.linspace(mo - r, mo + r, s)
+        mask_inside_scaling_factors = np.linspace(mi - r, mi + r, s)
 
-    if os.path.exists(dest_file):
-        print("Skipping as edit file already exists (probably baseline)")
-        exit(0)
+    for mask_outside_scaling_factor in mask_outside_scaling_factors:
+        for mask_inside_scaling_factor in mask_inside_scaling_factors:
+            print("Trying mask_outside_scaling_factor", mask_outside_scaling_factor, "mask_inside_scaling_factor", mask_inside_scaling_factor)
 
+            if args.masks is None:
+                dest_file = os.path.join(args.results_folder, f"edit/{bname}_{args.xa_guidance}_{args.task_name}_no_mask.png")
+            else:
+                dest_file = os.path.join(args.results_folder, f"edit/{bname}_guidance_{args.guidance_steps}_{args.xa_guidance}_outside_{mask_outside_scaling_factor}_inside_{mask_inside_scaling_factor}_{args.task_name}.png")
 
-    for inv_path, prompt_path in zip(l_inv_paths, l_prompt_paths):
-        prompt_str = open(prompt_path).read().strip()
-        # CR fanpu: don't really get why they think using the unedited prompt
-        # for the negative prompt is the right thing to do here
-        rec_pil, edit_pil = pipe(prompt_str,
-                num_inference_steps=args.num_ddim_steps,
-                x_in=torch.load(inv_path).unsqueeze(0),
-                edit_dir=construct_direction(args.task_name),
-                guidance_amount=args.xa_guidance,
-                guidance_scale=args.negative_guidance_scale,
-                negative_prompt=prompt_str, # use the unedited prompt for the negative prompt
-                dump_attention=args.dump_attention,
-                masks=masks,
-                mask_outside_scaling_factor=args.mask_outside_scaling_factor,
-                mask_inside_scaling_factor=args.mask_inside_scaling_factor,
-                guidance_steps=args.guidance_steps
-        )
-        
-        edit_pil[0].save(dest_file)
-        rec_pil[0].save(os.path.join(args.results_folder, f"reconstruction/{bname}.png"))
+            if os.path.exists(dest_file):
+                print("Skipping as edit file already exists")
+                continue
+
+            for inv_path, prompt_path in zip(l_inv_paths, l_prompt_paths):
+                prompt_str = open(prompt_path).read().strip()
+                # CR fanpu: don't really get why they think using the unedited prompt
+                # for the negative prompt is the right thing to do here
+                rec_pil, edit_pil = pipe(prompt_str,
+                        num_inference_steps=args.num_ddim_steps,
+                        x_in=torch.load(inv_path).unsqueeze(0),
+                        edit_dir=construct_direction(args.task_name),
+                        guidance_amount=args.xa_guidance,
+                        guidance_scale=args.negative_guidance_scale,
+                        negative_prompt=prompt_str, # use the unedited prompt for the negative prompt
+                        dump_attention=args.dump_attention,
+                        masks=masks,
+                        mask_outside_scaling_factor=mask_outside_scaling_factor,
+                        mask_inside_scaling_factor=mask_inside_scaling_factor,
+                        guidance_steps=args.guidance_steps
+                )
+                
+                edit_pil[0].save(dest_file)
+                rec_pil[0].save(os.path.join(args.results_folder, f"reconstruction/{bname}.png"))

@@ -1,12 +1,14 @@
 #!/bin/bash
 
-source="middle aged man"
-target="a young adult"
-mask_outside_scaling_factor=1.2
-mask_inside_scaling_factor=0.8
-xa_guidance=0.04
-xa_guidance_baseline=0.04 # default 0.1
-guidance_steps=2
+source="without glasses"
+target="wearing glasses"
+mask_outside_scaling_factor=1.0
+mask_inside_scaling_factor=1.0
+mask_explore_radius=0.5
+mask_explore_step=5
+xa_guidance=0.1
+xa_guidance_baseline=0.1 # default 0.1
+guidance_steps=1
 # mask choices: 
 # stefano_age_mask.jpg  stefano_bangs_mask.jpg  stefano_beard_mask.jpg
 # stefano_face_mask.jpg  stefano_glasses_mask.jpg
@@ -85,6 +87,8 @@ python src/edit_real.py \
     --mask_inside_scaling_factor $mask_inside_scaling_factor \
     --guidance_steps=$guidance_steps \
     --xa_guidance=$xa_guidance \
+    --mask_explore_radius=$mask_explore_radius \
+    --mask_explore_step=$mask_explore_step \
     --use_float_16
 
 echo "Running baseline"
