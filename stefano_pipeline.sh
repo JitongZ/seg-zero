@@ -1,12 +1,12 @@
 #!/bin/bash
 
-source="uncovered forehead"
-target="hair bangs"
+source="middle aged man"
+target="a young adult"
 mask_outside_scaling_factor=1.2
 mask_inside_scaling_factor=0.8
 xa_guidance=0.04
 xa_guidance_baseline=0.04 # default 0.1
-guidance_steps=1
+guidance_steps=2
 # mask choices: 
 # stefano_age_mask.jpg  stefano_bangs_mask.jpg  stefano_beard_mask.jpg
 # stefano_face_mask.jpg  stefano_glasses_mask.jpg
