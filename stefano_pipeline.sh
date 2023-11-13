@@ -2,11 +2,11 @@
 
 source="middle aged man"
 target="young boy"
-mask_outside_scaling_factor=1.1
-mask_inside_scaling_factor=0.9
+mask_outside_scaling_factor=1.3
+mask_inside_scaling_factor=0.8
 xa_guidance=0.01
 xa_guidance_baseline=0.01 # default 0.1
-guidance_steps=3
+guidance_steps=5
 # mask choices: 
 # stefano_age_mask.jpg  stefano_bangs_mask.jpg  stefano_beard_mask.jpg
 # stefano_face_mask.jpg  stefano_glasses_mask.jpg
