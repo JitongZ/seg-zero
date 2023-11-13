@@ -150,9 +150,9 @@ if __name__=="__main__":
             print("Trying mask_outside_scaling_factor", mask_outside_scaling_factor, "mask_inside_scaling_factor", mask_inside_scaling_factor)
 
             if args.masks is None:
-                dest_file = os.path.join(args.results_folder, f"edit/{bname}_{args.xa_guidance}_{args.task_name}_no_mask.png")
+                dest_file = os.path.join(args.results_folder, f"edit/{bname}_{args.task_name}_{args.xa_guidance}_no_mask.png")
             else:
-                dest_file = os.path.join(args.results_folder, f"edit/{bname}_guidance_{args.guidance_steps}_{args.xa_guidance}_outside_{mask_outside_scaling_factor}_inside_{mask_inside_scaling_factor}_{args.task_name}.png")
+                dest_file = os.path.join(args.results_folder, f"edit/{bname}_{args.task_name}_guidance_{args.guidance_steps}_{args.xa_guidance}_outside_{mask_outside_scaling_factor}_inside_{mask_inside_scaling_factor}.png")
 
             if os.path.exists(dest_file):
                 print("Skipping as edit file already exists")
