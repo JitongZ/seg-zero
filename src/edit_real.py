@@ -145,6 +145,8 @@ if __name__=="__main__":
 
     for mask_outside_scaling_factor in mask_outside_scaling_factors:
         for mask_inside_scaling_factor in mask_inside_scaling_factors:
+            mask_outside_scaling_factor = round(mask_outside_scaling_factor, 2)
+            mask_inside_scaling_factor = round(mask_inside_scaling_factor, 2)
             print("Trying mask_outside_scaling_factor", mask_outside_scaling_factor, "mask_inside_scaling_factor", mask_inside_scaling_factor)
 
             if args.masks is None:
