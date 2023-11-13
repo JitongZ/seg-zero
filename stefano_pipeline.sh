@@ -4,8 +4,8 @@ source="without glasses"
 target="wearing glasses"
 mask_outside_scaling_factor=1.0
 mask_inside_scaling_factor=1.0
-mask_explore_radius=0.5
-mask_explore_step=5
+mask_explore_radius=0.8
+mask_explore_step=16
 xa_guidance=0.1
 xa_guidance_baseline=0.1 # default 0.1
 guidance_steps=1
@@ -14,7 +14,7 @@ guidance_steps=1
 # stefano_face_mask.jpg  stefano_glasses_mask.jpg
 input_image="assets/custom/stefano.jpg"
 
-mask_types=("stefano_age_mask.jpg")
+mask_types=("stefano_glasses_mask.jpg")
 
 # When performing exploration for images in CelebAHQ-mask, these are the
 # attributes you can use:
