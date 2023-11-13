@@ -1,16 +1,16 @@
 #!/bin/bash
 
-image_num=0
-image_prefix=00000
-source="mouth wide open"
-target="mouth closed"
-mask_outside_scaling_factor=1.2
-mask_inside_scaling_factor=0.05
+source="beard"
+target="clean shaven"
+mask_outside_scaling_factor=1.0
+mask_inside_scaling_factor=0.7
 guidance_steps=1
-# mask_type choices: 
-# cloth  l_brow  l_eye  mouth  nose    r_eye  u_lip 
-# hair   l_ear   l_lip  neck   r_brow  skin
-mask_types=("mouth")
+# mask choices: 
+# stefano_age_mask.jpg  stefano_bangs_mask.jpg  stefano_beard_mask.jpg
+# stefano_face_mask.jpg  stefano_glasses_mask.jpg
+input_image="assets/custom/stefano.jpg"
+
+mask_types=("stefano_beard_mask.jpg")
 
 # When performing exploration for images in CelebAHQ-mask, these are the
 # attributes you can use:
@@ -24,13 +24,11 @@ mask_types=("mouth")
 # 'Wearing_Lipstick', 'Wearing_Necklace', 'Wearing_Necktie', 'Young']
 
 task="${source}2${target}"
-# masks="assets/masks/${image_prefix}_u_lip.png assets/masks/${image_prefix}_l_lip.png" 
+
 masks=""
 for mask_type in "${mask_types[@]}"; do
-    masks+="assets/masks/${image_prefix}_${mask_type}.png " 
+    masks+="assets/custom_masks/${mask_type} " 
 done
-
-./grab_data.sh "${image_num}.jpg" "${image_prefix}"
 
 echo "Task ${task}"
 echo "Using masks ${masks}"
@@ -65,7 +63,7 @@ python src/make_edit_direction.py \
 echo "Running inversion"
 
 python src/inversion.py  \
-        --input_image "assets/custom/${image_num}.jpg" \
+        --input_image $input_image \
         --results_folder "output/test_custom" \
         --num_ddim_steps 50 \
         --use_float_16
@@ -73,8 +71,8 @@ python src/inversion.py  \
 echo "Running our edits"
 
 python src/edit_real.py \
-    --inversion "output/test_custom/inversion/${image_num}.pt" \
-    --prompt "output/test_custom/prompt/${image_num}.txt" \
+    --inversion "output/test_custom/inversion/stefano.pt" \
+    --prompt "output/test_custom/prompt/stefano.txt" \
     --task_name "${task}" \
     --results_folder "output/test_custom/" \
     --num_ddim_steps 50 \
@@ -87,8 +85,8 @@ python src/edit_real.py \
 echo "Running baseline"
 
 python src/edit_real.py \
-    --inversion "output/test_custom/inversion/${image_num}.pt" \
-    --prompt "output/test_custom/prompt/${image_num}.txt" \
+    --inversion "output/test_custom/inversion/stefano.pt" \
+    --prompt "output/test_custom/prompt/stefano.txt" \
     --task_name "${task}" \
     --results_folder "output/test_custom/" \
     --num_ddim_steps 50 \

@@ -21,6 +21,30 @@ else:
 
 mask_dimensions = [64, 32, 16, 8] # all the dimensions required in our unet
 
+def max_pooling(image, pool_size):
+    # Determine the shape of the image
+    height, width = image.shape
+
+    # Calculate the shape of the output matrix
+    new_height = height // pool_size
+    new_width = width // pool_size
+
+    # Initialize the output matrix
+    pooled_image = np.zeros((new_height, new_width))
+
+    # Perform max pooling
+    for i in range(new_height):
+        for j in range(new_width):
+            h_start = i * pool_size
+            h_end = h_start + pool_size
+            w_start = j * pool_size
+            w_end = w_start + pool_size
+
+            # Extract the current block and find its max value
+            pooled_image[i, j] = np.max(image[h_start:h_end, w_start:w_end])
+
+    return pooled_image
+
 # Returns binary mask where 0 is black, and 1 is white (the mask of interest)
 def image_to_binary_masks(image_paths):
     # Load the image
@@ -32,10 +56,12 @@ def image_to_binary_masks(image_paths):
             img = img.convert('L')
 
             for dim in mask_dimensions:
-                resized_img = img.resize((dim, dim), Image.BICUBIC)
+                resized_img = img.resize((1024, 1024), Image.BICUBIC)
+                # resized_img = img.resize((dim, dim), Image.BICUBIC)
+                img_array = max_pooling(np.array(resized_img), 1024 // dim)
 
                 # Convert image to a NumPy array
-                img_array = np.array(resized_img)
+                # img_array = np.array(resized_img)
 
                 # Apply a threshold to create a binary matrix (0 for black, 1 for white)
                 # Assuming the threshold for differentiating black and white is 128

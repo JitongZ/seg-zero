@@ -29,8 +29,9 @@ class SentenceGenerator:
     def _write_out(self, source_captions, target_captions):
         # Write the sentences to the file, each on a new line
         with open(self.source_file_path, "w") as file:
-            for sentence in source_captions:
-                file.write(sentence + "\n")
+            text = "\n".join(source_captions)
+            text = text.replace("\n\n", "\n")
+            file.write(text)
         print(f"File {self.source_file_path} has been successfully saved")
 
         with open(self.target_file_path, "w") as file:
