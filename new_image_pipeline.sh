@@ -1,9 +1,9 @@
 #!/bin/bash
 
-image_num=0
-image_prefix=00000
-source="mouth open wide smiling"
-target="mouth closed not smiling"
+image_num=13
+image_prefix=00013
+source="neutral expression"
+target="smiling"
 mask_outside_scaling_factor=1.0
 mask_inside_scaling_factor=0.8
 mask_explore_radius=0.5
