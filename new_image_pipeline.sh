@@ -2,11 +2,15 @@
 
 image_num=0
 image_prefix=00000
-source="mouth wide open"
-target="mouth closed"
-mask_outside_scaling_factor=1.2
-mask_inside_scaling_factor=0.05
-guidance_steps=1
+source="smiling"
+target="not smiling"
+mask_outside_scaling_factor=1.0
+mask_inside_scaling_factor=0.8
+mask_explore_radius=0.5
+mask_explore_step=4
+xa_guidance=0.1
+xa_guidance_baseline=0.1 # default 0.1
+guidance_steps=1 #"1 2 3 5 7 10 20 30"
 # mask_type choices: 
 # cloth  l_brow  l_eye  mouth  nose    r_eye  u_lip 
 # hair   l_ear   l_lip  neck   r_brow  skin
@@ -82,6 +86,9 @@ python src/edit_real.py \
     --mask_outside_scaling_factor $mask_outside_scaling_factor \
     --mask_inside_scaling_factor $mask_inside_scaling_factor \
     --guidance_steps=$guidance_steps \
+    --xa_guidance=$xa_guidance \
+    --mask_explore_radius=$mask_explore_radius \
+    --mask_explore_step=$mask_explore_step \
     --use_float_16
 
 echo "Running baseline"
@@ -92,4 +99,5 @@ python src/edit_real.py \
     --task_name "${task}" \
     --results_folder "output/test_custom/" \
     --num_ddim_steps 50 \
+    --xa_guidance=$xa_guidance_baseline \
     --use_float_16

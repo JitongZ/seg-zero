@@ -5,9 +5,9 @@ target="hair bangs"
 mask_outside_scaling_factor=1.0
 mask_inside_scaling_factor=0.8
 mask_explore_radius=0.5
-mask_explore_step=3
-xa_guidance=0.1
-xa_guidance_baseline=0.1 # default 0.1
+mask_explore_step=4
+xa_guidance=1.0
+xa_guidance_baseline=1.0 # default 0.1
 guidance_steps=1 #"1 2 3 5 7 10 20 30"
 # mask choices: 
 # stefano_age_mask.jpg  stefano_bangs_mask.jpg  stefano_beard_mask.jpg
