@@ -1,13 +1,13 @@
 #!/bin/bash
 
-source="no bangs"
-target="hair bangs"
+source="middle aged white man with short hair"
+target="middle aged white man with hair fringe"
 mask_outside_scaling_factor=1.0
 mask_inside_scaling_factor=0.8
 mask_explore_radius=0.5
-mask_explore_step=4
-xa_guidance=1.0
-xa_guidance_baseline=1.0 # default 0.1
+mask_explore_step=5
+xa_guidance=0.2
+xa_guidance_baseline=0.2 # default 0.1
 guidance_steps=1 #"1 2 3 5 7 10 20 30"
 # mask choices: 
 # stefano_age_mask.jpg  stefano_bangs_mask.jpg  stefano_beard_mask.jpg
