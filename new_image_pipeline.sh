@@ -6,26 +6,15 @@ source="white woman with blonde hair bangs"
 target="white woman with blonde hair without bangs"
 mask_outside_scaling_factor=1.0
 mask_inside_scaling_factor=0.8
-<<<<<<< HEAD
 mask_explore_radius=0.6
 mask_explore_step=6
 xa_guidance=0.01
 xa_guidance_baseline=0.01 # default 0.1
-=======
-mask_explore_radius=0.5
-mask_explore_step=3
-xa_guidance=0.1
-xa_guidance_baseline=0.1 # default 0.1
->>>>>>> 4f51641 (add results)
 guidance_steps=1 #"1 2 3 5 7 10 20 30"
 # mask_type choices: 
 # cloth  l_brow  l_eye  mouth  nose    r_eye  u_lip 
 # hair   l_ear   l_lip  neck   r_brow  skin
-<<<<<<< HEAD
 mask_types=("skin")
-=======
-mask_types=("hair")
->>>>>>> 4f51641 (add results)
 
 # When performing exploration for images in CelebAHQ-mask, these are the
 # attributes you can use:

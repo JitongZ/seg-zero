@@ -1,20 +1,20 @@
 #!/bin/bash
 
-source="middle aged white man with short hair"
-target="middle aged white man with hair fringe"
+source="beard"
+target="clean shaven face"
 mask_outside_scaling_factor=1.0
 mask_inside_scaling_factor=0.8
-mask_explore_radius=0.5
-mask_explore_step=5
-xa_guidance=0.2
-xa_guidance_baseline=0.2 # default 0.1
+mask_explore_radius=0.3
+mask_explore_step=4
+xa_guidance=0.1
+xa_guidance_baseline=0.1 # default 0.1
 guidance_steps=1 #"1 2 3 5 7 10 20 30"
 # mask choices: 
 # stefano_age_mask.jpg  stefano_bangs_mask.jpg  stefano_beard_mask.jpg
 # stefano_face_mask.jpg  stefano_glasses_mask.jpg
 input_image="assets/custom/stefano.jpg"
 
-mask_types=("stefano_bangs_mask.jpg")
+mask_types=("stefano_beard_mask.jpg")
 
 # When performing exploration for images in CelebAHQ-mask, these are the
 # attributes you can use:
