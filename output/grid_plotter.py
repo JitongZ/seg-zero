@@ -32,6 +32,8 @@ for png_file in png_files:
     else:
         raise ValueError(f"Invalid file name: {png_file}")
 
+plt.tight_layout(pad=3.0, h_pad=0.5, w_pad=0.5)
+
 # Create a figure with 16x16 grid of subplots
 fig, axes = plt.subplots(16, 16, figsize=(16, 16))
 
@@ -48,19 +50,19 @@ for i, key in enumerate(ordering):
     axes[i].imshow(images[(outside, inside)])
     axes[i].axis('off') 
 
-    print(key)
+fig.suptitle('No Glasses to Glasses', fontsize=34, y=0.98)  # Adjust y for title position
+fig.supxlabel('lambda_in (low to high)', fontsize=20, x=0.5)  # Adjust x for xlabel position
+fig.supylabel('lambda_out (low to high)', fontsize=20, y=0.5)  # Adjust y for ylabel position
 
-    # axes[i].set_title(f'Outside: {outside}, Inside: {inside}', fontsize=8)
-    # Optionally, you can turn off the axis ticks if they're not needed
-    # axes[i].set_xticks([inside])
-    # axes[i].set_yticks([outside])
+# Fine-tune subplot adjustments if needed
+plt.subplots_adjust(top=0.95, bottom=0.05, left=0.05, right=0.95)
 
-fig.suptitle('No Glasses to Glasses', fontsize=16)
-fig.supxlabel('lambda_in (low to high)', fontsize=12)
-fig.supylabel('lambda_out (low to high)', fontsize=12)
+# fig.suptitle('No Glasses to Glasses', fontsize=34)
+# fig.supxlabel('lambda_in (low to high)', fontsize=20)
+# fig.supylabel('lambda_out (low to high)', fontsize=20)
 
-# Adjust layout
-plt.subplots_adjust(wspace=0, hspace=0)
+# # Adjust layout
+# plt.subplots_adjust(wspace=0, hspace=0)
 
 # Show the plot
 plt.savefig('glasses_grid_plot.png')
