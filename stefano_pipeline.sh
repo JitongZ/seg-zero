@@ -6,9 +6,9 @@ mask_outside_scaling_factor=1.0
 mask_inside_scaling_factor=1.0
 mask_explore_radius=0.0
 mask_explore_step=1
-xa_guidance=0.1
+xa_guidance=0.003
 xa_guidance_baseline=0.1 # default 0.1
-guidance_steps="1 2 3 5 7"
+guidance_steps="50 100"
 # mask choices: 
 # stefano_age_mask.jpg  stefano_bangs_mask.jpg  stefano_beard_mask.jpg
 # stefano_face_mask.jpg  stefano_glasses_mask.jpg
