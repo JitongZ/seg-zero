@@ -51,6 +51,8 @@ def image_to_binary_masks(image_paths):
     # Load the image
     masks = {}
 
+    counter = 0
+
     for image_path in image_paths:
         with Image.open(image_path) as img:
             # Convert image to grayscale
@@ -67,6 +69,34 @@ def image_to_binary_masks(image_paths):
                 # Apply a threshold to create a binary matrix (0 for black, 1 for white)
                 # Assuming the threshold for differentiating black and white is 128
                 binary_matrix = (img_array > 128).astype(int)
+
+                gaussian_blur = False
+
+                if gaussian_blur:
+                    # adding gaussian blur
+                    import cv2
+                    
+                    sigma = max(binary_matrix.shape) / 32.0
+                    # Calculate an appropriate kernel size (an odd integer)
+                    kernel_size = int(6 * sigma) | 1
+                    # Convert the binary mask to a float32 image
+                    binary_matrix_float = binary_matrix.astype(np.float32)
+                    # Apply Gaussian blur
+                    blurred_mask = cv2.GaussianBlur(binary_matrix_float, (kernel_size, kernel_size), sigma)
+                    # Normalize the blurred mask to the range [0, 1]
+                    blurred_mask = blurred_mask / np.max(blurred_mask)
+                    
+                    # binary_mask_img = binary_matrix.astype(np.float32)
+                    # binary_mask_img = (binary_mask_img * 255).astype(np.uint8)
+
+                    # blurred_mask_img = (blurred_mask * 255).astype(np.uint8)
+                    # print(" ???", kernel_size, max(binary_matrix.shape))
+                    # cv2.imwrite(f'./temp/binary_mask_{counter}.png', binary_mask_img)
+                    # cv2.imwrite(f'./temp/blurred_mask_{counter}.png', blurred_mask_img)
+                    # counter += 1
+
+                    binary_matrix = blurred_mask
+                
 
                 if dim not in masks:
                     masks[dim] = torch.tensor(binary_matrix).to(device)
