@@ -143,17 +143,12 @@ class EditingPipeline(BasePipeline):
                 latent_model_input = torch.cat([latents] * 2) if do_classifier_free_guidance else latents
                 latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
 
+                x_in = latent_model_input.detach().clone()
+                x_in.requires_grad = True
+                
+                opt = torch.optim.SGD([x_in], lr=guidance_amount)
+
                 for steps in range(guidance_steps):
-                    x_in = latent_model_input.detach().clone()
-                    x_in.requires_grad = True
-                    
-                    opt = torch.optim.SGD([x_in], lr=guidance_amount)
-
-                    # TODO: try different scheduler
-                    # TODO: try masking only the last few layers
-                    # TODO: different lr
-                    # TODO: gaussian blur on mask
-
                     # predict the noise residual
                     noise_pred = self.unet(x_in,t,encoder_hidden_states=prompt_embeds_edit.detach(),cross_attention_kwargs=cross_attention_kwargs,).sample
 
