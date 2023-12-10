@@ -171,8 +171,8 @@ if __name__=="__main__":
         s = args.mask_explore_steps
         mo = args.mask_outside_scaling_factor
         mi = args.mask_inside_scaling_factor
-        mask_outside_scaling_factors = np.linspace(mo - r, mo + r, s)
-        mask_inside_scaling_factors = np.linspace(mi - r, mi + r, s)
+        mask_outside_scaling_factors = np.linspace(mo - r, mo + r, s)[::-1]
+        mask_inside_scaling_factors = np.linspace(mi - r, mi + r, s)[::-1]
 
     guidance_steps_list = args.guidance_steps
     if guidance_steps_list is None:
