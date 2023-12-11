@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 # Specify the directory path
-directory_path = './stefano_glasses'
+directory_path = './stefano_glasses_guidance'
 
 # List all files in the directory
 all_files = os.listdir(directory_path)
@@ -65,5 +65,5 @@ plt.subplots_adjust(top=0.95, bottom=0.05, left=0.05, right=0.95)
 # plt.subplots_adjust(wspace=0, hspace=0)
 
 # Show the plot
-plt.savefig('glasses_grid_plot.png')
+plt.savefig('glasses_guidance_grid_plot.png')
 plt.show()
