@@ -44,6 +44,7 @@ class EditingPipeline(BasePipeline):
         masks=None,
         mask_outside_scaling_factor=1.5,
         mask_inside_scaling_factor=0.7,
+        mask_dim_threshold=64,
         guidance_steps=1,
     ):
         x_in.to(dtype=self.unet.dtype, device=self._execution_device)
@@ -159,36 +160,18 @@ class EditingPipeline(BasePipeline):
                             curr = module.attn_probs # size is num_channel,s*s,77
                             ref = d_ref_t2attn[t.item()][name].detach().to(device)
                             
-                            apply_mask = True
-                            # import ipdb
-                            # ipdb.set_trace()
-                            # if 'down_block' in name:
-                            #     block_type_scale = 1.0
-                            #     apply_mask = True
-                            # elif 'mid_block' in name:
-                            #     block_type_scale = 0.1
-                            #     apply_mask = False
-                            # else:
-                            #     assert 'up_block' in name
-                            #     block_type_scale = 1.0
-                            #     apply_mask = True
+                            _, dim_squared, _ = curr.shape
+                            dim = int(math.sqrt(dim_squared))
 
-                            # new code
-                            # if "down_blocks.0" in name or "up_blocks.3" in name:
-                            #     apply_mask = True
-                            # else:
-                            #     apply_mask = False
+                            apply_mask = (dim >= mask_dim_threshold)
+                            
+                            # not adding loss at all
+                            if apply_mask == False:
+                                continue
 
-                            '''
-                            ['down_blocks.0.attentions.0.transformer_blocks.0.attn2', 'down_blocks.0.attentions.1.transformer_blocks.0.attn2', 'down_blocks.1.attentions.0.transformer_blocks.0.attn2', 'down_blocks.1.attentions.1.transformer_blocks.0.attn2', 'down_blocks.2.attentions.0.transformer_blocks.0.attn2', 'down_blocks.2.attentions.1.transformer_blocks.0.attn2', 'up_blocks.1.attentions.0.transformer_blocks.0.attn2', 'up_blocks.1.attentions.1.transformer_blocks.0.attn2', 'up_blocks.1.attentions.2.transformer_blocks.0.attn2', 'up_blocks.2.attentions.0.transformer_blocks.0.attn2', 'up_blocks.2.attentions.1.transformer_blocks.0.attn2', 'up_blocks.2.attentions.2.transformer_blocks.0.attn2', 'up_blocks.3.attentions.0.transformer_blocks.0.attn2', 'up_blocks.3.attentions.1.transformer_blocks.0.attn2', 'up_blocks.3.attentions.2.transformer_blocks.0.attn2', 'mid_block.attentions.0.transformer_blocks.0.attn2']
-                            '''
-
-                            if masks and apply_mask:
+                            if masks:
                                 # Using our method
-                                _, dim_squared, _ = curr.shape
-                                dim = int(math.sqrt(dim_squared))
                                 mask = masks[dim].reshape((1,-1,1)).repeat(16,1,77)
-
                                 diff = curr - ref
                                 
                                 # Penalize areas outside mask more
@@ -203,8 +186,10 @@ class EditingPipeline(BasePipeline):
                             else:
                                 # Use the original method
                                 loss += ((curr-ref)**2).sum((1,2)).mean(0)
-                    loss.backward(retain_graph=False)
-                    opt.step()
+                    
+                    if loss != 0.0:
+                        loss.backward(retain_graph=False)
+                        opt.step()
 
                 # recompute the noise
                 with torch.no_grad():
