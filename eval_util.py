@@ -166,6 +166,76 @@ def write_to_csv(statistics, file_name="lpips"):
             writer.writerow([label, ours_value, baseline_value, diff_value])
         writer.writerow(["Average", statistics["ours_mean"], statistics["baseline_mean"], statistics["diff_mean"]])
 
+def print_result_list(ours, baselines):
+    num_baselines = len(baselines)
+    col_widths = [15] + [10] * (num_baselines + 1)
+
+    # Header
+    headers = ["Label", "Ours"] + [f"Baseline{i+1}" for i in range(num_baselines)]
+    print(" ".join([h.ljust(col_widths[i]) for i, h in enumerate(headers)]))
+
+    # Statistics
+    statistics = {"labels": [], "ours": []}
+    for i in range(num_baselines):
+        statistics[f"baseline{i+1}"] = []
+
+    for line in zip(ours, *baselines):
+        label = line[0][0]
+        ours_value = line[0][1]
+        statistics["labels"].append(label)
+        statistics["ours"].append(ours_value)
+
+        values = [label, ours_value]
+        for i, baseline in enumerate(line[1:]):
+            # assert label == baseline[0] # not work for talktoedit due to missing image
+            baseline_value = baseline[1]
+            statistics[f"baseline{i+1}"].append(baseline_value)
+            values.append(baseline_value)
+
+        print(" ".join([f"{v:<{col_widths[i]}.4f}" if isinstance(v, float) else f"{v:<{col_widths[i]}}" for i, v in enumerate(values)]))
+
+    # Average calculation
+    ours_mean = mean([x[1] for x in ours])
+    statistics["ours_mean"] = ours_mean
+    print(f"\nAverage:")
+    print(f'{"ours:":<{15}} {ours_mean:<{20}.4f}')
+
+    for i in range(num_baselines):
+        baseline_mean = mean([x[1] for x in baselines[i]])
+        statistics[f"baseline{i+1}_mean"] = baseline_mean
+        print(f'{"baseline" + str(i+1) + ":":<{15}} {baseline_mean:<{20}.4f}')
+
+    return statistics
+
+
+def write_to_csv_list(statistics, file_name="lpips_all"):
+    import csv
+    import os
+
+    # Determine the number of baselines
+    num_baselines = len([key for key in statistics if key.startswith("baseline") and "_mean" not in key])
+
+    # Prepare headers
+    headers = ["Label", "Ours"] + [f"Baseline{i+1}" for i in range(num_baselines)]
+    averages = ["Average", statistics["ours_mean"]] + [statistics[f"baseline{i+1}_mean"] for i in range(num_baselines)]
+
+    with open(os.path.join(output_path, f'{file_name}.csv'), 'w', newline='') as file:
+        writer = csv.writer(file)
+
+        # Write headers
+        writer.writerow(headers)
+
+        # Write data rows
+        for i, label in enumerate(statistics["labels"]):
+            row = [label, statistics["ours"][i]] + [statistics[f"baseline{j+1}"][i] for j in range(num_baselines)]
+            writer.writerow(row)
+
+        # Write averages
+        writer.writerow(averages)
+
+
+
+
 if __name__ == "__main__":
     # hardcode the filenames for now
     output_path = "assets/eval_results"
@@ -178,9 +248,30 @@ if __name__ == "__main__":
         "stefano_glasses.png",
         "stefano_shaven.png",
         "stefano_young.png"
-        ]
+    ]
+    file_names_jpg = [
+        "0_no_smile.jpg",
+        "13_smiling.jpg",
+        "17_no_bangs.jpg",
+        "stefano_bangs.jpg",
+        "stefano_glasses.jpg",
+        "stefano_shaven.jpg",
+        "stefano_young.jpg"
+    ]
+    file_names_talk = [
+        "0_no_smile.png",
+        "13_smiling.png",
+        "17_no_bangs.png",
+        "stefano_bangs.png",
+        "stefano.jpg",
+        "stefano_shaven.png",
+        "stefano_young.png"
+    ]
     ours = [os.path.join(images_path, "ours", f) for f in file_names]
     p2p = [os.path.join(images_path, "pix2pix-baseline", f) for f in file_names]
+    sc_fegan = [os.path.join(images_path, "SC-FEGAN", f) for f in file_names_jpg]
+    talk_to_edit = [os.path.join(images_path, "TalkToEdit", f) for f in file_names_talk]
+
     # rec files in png
     rec_file_names = [
         "0.png",
@@ -307,20 +398,55 @@ if __name__ == "__main__":
     # write_to_csv(ours_vs_p2p_orig_unmasked, "lpips_unmasked")
 
     
-    # Calculate CLIP
+    # # Calculate CLIP
+    # print("----------------------------------------")
+    # print("CLIP")
+    # print("Ours vs P2P vs Original")
+    # ours_clip = get_evals(CLIP,ours,dst_sentences)
+    # p2p_clip = get_evals(CLIP,p2p,dst_sentences)
+    # original_clip = get_evals(CLIP,original,dst_sentences)
+    # # print("ours", ours_clip)
+    # # print("p2p", p2p_clip)
+    # # print("original", original_clip)
+    # ours_vs_p2p_clip = print_result(ours_clip, p2p_clip)
+    # write_to_csv(ours_vs_p2p_clip, "clip")
+    # # p2p = get_evals(CLIP,p2p,rec,combined_masks)
+    # # original = get_evals(CLIP,p2p,rec,combined_masks)
+
+    # Calculate LPIPS
     print("----------------------------------------")
-    print("CLIP")
-    print("Ours vs P2P vs Original")
-    ours_clip = get_evals(CLIP,ours,dst_sentences)
-    p2p_clip = get_evals(CLIP,p2p,dst_sentences)
-    original_clip = get_evals(CLIP,original,dst_sentences)
-    # print("ours", ours_clip)
-    # print("p2p", p2p_clip)
-    # print("original", original_clip)
-    ours_vs_p2p_clip = print_result(ours_clip, p2p_clip)
-    write_to_csv(ours_vs_p2p_clip, "clip")
-    # p2p = get_evals(CLIP,p2p,rec,combined_masks)
-    # original = get_evals(CLIP,p2p,rec,combined_masks)
+    print("Masked LPIPS")
+    print("Ours vs Original, P2P vs Original, TalkToEdit vs Original, SC-FEGAN vs Original")
+    ours_vs_orig = get_evals(LPIPS,ours,original,combined_masks)
+    p2p_vs_orig = get_evals(LPIPS,p2p,original,combined_masks)
+    talk_to_edit_vs_orig = get_evals(LPIPS,talk_to_edit,original,combined_masks)
+    sc_fegan_vs_orig = get_evals(LPIPS,sc_fegan,original,combined_masks)
+    ours_vs_others_orig_masked = print_result_list(ours_vs_orig, [p2p_vs_orig, talk_to_edit_vs_orig, sc_fegan_vs_orig])
+    write_to_csv_list(ours_vs_others_orig_masked, "all_lpips_masked")
+    
+    print()
+    print("Ours vs Original, P2P vs Original, TalkToEdit vs Original, SC-FEGAN vs Original")
+    ours_vs_orig = get_evals(LPIPS,ours,original)
+    p2p_vs_orig = get_evals(LPIPS,p2p,original)
+    talk_to_edit_vs_orig = get_evals(LPIPS,talk_to_edit,original)
+    sc_fegan_vs_orig = get_evals(LPIPS,sc_fegan,original)
+
+    ours_vs_others_orig_unmasked = print_result_list(ours_vs_orig, [p2p_vs_orig, talk_to_edit_vs_orig, sc_fegan_vs_orig])
+    write_to_csv_list(ours_vs_others_orig_unmasked, "all_lpips_unmasked")
+
+
+    # Calculate CLIP scores for all methods
+    print("----------------------------------------")
+    print("CLIP Scores")
+    print("Ours vs Original, P2P vs Original, TalkToEdit vs Original, SC-FEGAN vs Original")
+    ours_clip = get_evals(CLIP, ours, dst_sentences)
+    p2p_clip = get_evals(CLIP, p2p, dst_sentences)
+    talk_to_edit_clip = get_evals(CLIP, talk_to_edit, dst_sentences)
+    sc_fegan_clip = get_evals(CLIP, sc_fegan, dst_sentences)
+
+    # Print results and write to CSV for CLIP scores
+    ours_vs_others_clip = print_result_list(ours_clip, [p2p_clip, talk_to_edit_clip, sc_fegan_clip])
+    write_to_csv_list(ours_vs_others_clip, "all_clip")
 
 
 
